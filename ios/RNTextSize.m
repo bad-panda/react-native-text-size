@@ -183,7 +183,8 @@ RCT_EXPORT_METHOD(flatHeights:(NSDictionary * _Nullable)options
   NSLayoutManager *layoutManager = [NSLayoutManager new];
   [layoutManager addTextContainer:textContainer];
 
-  NSTextStorage *textStorage = [[NSTextStorage alloc] initWithString:@" " attributes:attributes];
+  NSAttributedString *blankAttributedString = [[NSAttributedString alloc] initWithString:@" " attributes:attributes];
+  NSTextStorage *textStorage = [[NSTextStorage alloc] initWithAttributedString:blankAttributedString];
   [textStorage addLayoutManager:layoutManager];
 
   NSMutableArray<NSNumber *> *result = [[NSMutableArray alloc] initWithCapacity:texts.count];
@@ -211,6 +212,11 @@ RCT_EXPORT_METHOD(flatHeights:(NSDictionary * _Nullable)options
 
     const CGFloat height = MIN(RCTCeilPixelValue(size.height + epsilon), maxSize.height);
     result[ix] = @(height);
+
+    // Reset to same blankAttributedString that textStorage was init with
+    // without this, attributes may bleed over from 1 text to the next
+    // example: applying emoji/symbol font attrs to everything if previous text started with one
+    [textStorage setAttributedString:blankAttributedString];
   }
 
   resolve(result);
